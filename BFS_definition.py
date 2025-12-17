@@ -79,6 +79,15 @@ def on_entry_check4vertex(vertex, opaque: int):
 
 
 def path_to_objective(parents: dict, startNode):
+    """Compute the path from the root node to the objective node using the parent dictionary.
+
+    Args:
+        parents (dict): Dictionary where key is child node and value is parent node
+        startNode (any): The objective node from which to trace back to the root
+
+    Returns:
+        path (list): The path from the root to the objective node
+    """
     path = []
     current = startNode
     while current is not None:
@@ -89,7 +98,7 @@ def path_to_objective(parents: dict, startNode):
 
 
 def on_entry_create_parents(vertex, opaque: tuple[dict, Rootedgraph, callable]):
-    """On entry function that builds parent dictionary
+    """On entry function that builds parent dictionary and stops BFS when objective is reached --> returns path from root to objective.
 
     Args:
         vertex : The vertex that has just been discovered
@@ -148,7 +157,6 @@ def BFS(graph: Rootedgraph, on_entry: callable, opaque=None):
 
 
 if __name__ == "__main__":
-    """
     graph = {0: [1, 2], 1: [0, 2], 2: [0, 3, 4, 5], 3: [2], 4: [2, 5], 5: [2]}
     graph2 = {0: [1, 2], 1: [0, 2], 2: [1, 2, 3], 3: [2, 4], 4: [3], 6: [7], 7: [6]}
     print("====== BFS =======")
@@ -181,11 +189,10 @@ if __name__ == "__main__":
             )[0]
         )
     )
-    """
-    hanoi_graph = HanoiGraph(3)
+    hanoi_graph = HanoiGraph(5)
     result = BFS(
         hanoi_graph,
         on_entry_create_parents,
-        opaque=(None, hanoi_graph, ((), (), (3, 2, 1))),
+        opaque=(None, hanoi_graph, ((), (), (5, 4, 3, 2, 1))),
     )
     print(result[1])
