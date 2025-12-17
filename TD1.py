@@ -78,9 +78,9 @@ def on_entry_check4vertex(vertex, opaque: int):
     return (False, opaque + 1)
 
 
-def parents_lists(parents: dict, root):
+def path_to_objective(parents: dict, startNode):
     path = []
-    current = root
+    current = startNode
     while current is not None:
         path.append(current)
         current = parents[current]
@@ -88,14 +88,51 @@ def parents_lists(parents: dict, root):
     return path
 
 
-def BFS(graph: Rootedgraph, on_entry: callable, opaque=None, get_path=False):
+def on_entry_create_parents(vertex, opaque: tuple[dict, Rootedgraph, callable]):
+    """On entry function that builds parent dictionary
+
+    Args:
+        vertex : The vertex that has just been discovered
+        opaque (dict, Rootedgraph, callable): The parent dictionnary being built (key : child, value : parent), the graph to determine parents of children and the objective function
+    Returns:
+        (terminate, new_opaque) :
+            terminate : bool - True to stop BFS, False to continue
+            new_opaque : (dict, Rootedgraph, callable) - Updated opaque value (new parent dictionary, same graph, and same objective function)
+    """
+    # Initialize opaque if not provided
+    if opaque is None or opaque[0] is None:
+        parentsDict = {}
+        graph = opaque[1] if opaque and len(opaque) > 1 else None
+        if graph is None:  # If no graph provided, we can't check neighbors
+            raise ValueError("Graph must be provided in opaque value")
+        objective = opaque[2]
+        opaque = (parentsDict, graph, objective)
+
+    parentsDict = opaque[0]
+    graph = opaque[1]
+    objective = opaque[2]
+
+    # Add the vertex to the parent dictionary if not already present
+    if vertex not in parentsDict:
+        parentsDict[vertex] = None  # Root has no parent
+    for neighbor in graph.neighbors(vertex):
+        if neighbor not in parentsDict:
+            parentsDict[neighbor] = vertex
+            if (
+                neighbor == objective
+            ):  # If we reached the objective, stop BFS and return the path from the root to the objective
+                return (
+                    True,
+                    path_to_objective(parentsDict, neighbor),
+                )
+    return (False, (parentsDict, graph, objective))
+
+
+def BFS(graph: Rootedgraph, on_entry: callable, opaque=None):
     marked = set()
     queue = deque()  # double ended queue : can pop from both ends
     for root in graph.roots():
         queue.append(root)
-    parents = {
-        root: None for root in graph.roots()
-    }  # Parent dictionnary to reconstruct paths of the BFS tree
 
     while queue:
         v = queue.popleft()
@@ -103,19 +140,15 @@ def BFS(graph: Rootedgraph, on_entry: callable, opaque=None, get_path=False):
             marked.add(v)
             terminate, opaque = on_entry(v, opaque)
             if terminate:
-                if get_path:
-                    return parents_lists(parents, v), marked
-                return marked
+                return marked, opaque
             for neighbors in graph.neighbors(v):
-                if neighbors not in marked:
+                if neighbors not in marked:  # Prevent re-adding already marked nodes
                     queue.append(neighbors)
-                    parents[neighbors] = (
-                        v if neighbors not in parents else parents[neighbors]
-                    )
-    return marked
+    return marked, opaque
 
 
 if __name__ == "__main__":
+    """
     graph = {0: [1, 2], 1: [0, 2], 2: [0, 3, 4, 5], 3: [2], 4: [2, 5], 5: [2]}
     graph2 = {0: [1, 2], 1: [0, 2], 2: [1, 2, 3], 3: [2, 4], 4: [3], 6: [7], 7: [6]}
     print("====== BFS =======")
@@ -130,23 +163,14 @@ if __name__ == "__main__":
 
     print("====== HANOI =======")
     hanoi_graph = HanoiGraph(3)
-    print(
-        BFS(hanoi_graph, lambda v, o: (v == ((), (), (3, 2, 1)), o), get_path=True)[0]
-    )
-    print(
-        len(
-            BFS(hanoi_graph, lambda v, o: (v == ((), (), (3, 2, 1)), o), get_path=True)[
-                0
-            ]
-        )
-    )
+    print(BFS(hanoi_graph, lambda v, o: (v == ((), (), (3, 2, 1)), o))[0])
+    print(len(BFS(hanoi_graph, lambda v, o: (v == ((), (), (3, 2, 1)), o))[0]))
 
     hanoi_graph = HanoiGraph(6)
     print(
         BFS(
             hanoi_graph,
             lambda v, o: (v == ((), (), (6, 5, 4, 3, 2, 1)), o),
-            get_path=True,
         )[0]
     )
     print(
@@ -154,7 +178,14 @@ if __name__ == "__main__":
             BFS(
                 hanoi_graph,
                 lambda v, o: (v == ((), (), (6, 5, 4, 3, 2, 1)), o),
-                get_path=True,
             )[0]
         )
     )
+    """
+    hanoi_graph = HanoiGraph(3)
+    result = BFS(
+        hanoi_graph,
+        on_entry_create_parents,
+        opaque=(None, hanoi_graph, ((), (), (3, 2, 1))),
+    )
+    print(result[1])
