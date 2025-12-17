@@ -89,7 +89,7 @@ def parents_lists(parents: dict, root):
 
 
 def BFS(graph: Rootedgraph, on_entry: callable, opaque=None, get_path=False):
-    marked = []
+    marked = set()
     queue = deque()  # double ended queue : can pop from both ends
     for root in graph.roots():
         queue.append(root)
@@ -100,17 +100,18 @@ def BFS(graph: Rootedgraph, on_entry: callable, opaque=None, get_path=False):
     while queue:
         v = queue.popleft()
         if v not in marked:
-            marked.append(v)
+            marked.add(v)
             terminate, opaque = on_entry(v, opaque)
             if terminate:
                 if get_path:
                     return parents_lists(parents, v), marked
                 return marked
             for neighbors in graph.neighbors(v):
-                queue.append(neighbors)
-                parents[neighbors] = (
-                    v if neighbors not in parents else parents[neighbors]
-                )
+                if neighbors not in marked:
+                    queue.append(neighbors)
+                    parents[neighbors] = (
+                        v if neighbors not in parents else parents[neighbors]
+                    )
     return marked
 
 
