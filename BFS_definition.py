@@ -3,6 +3,8 @@ from collections import deque
 
 
 class Rootedgraph(ABC):
+    """Abstract class for Rooted graphs"""
+
     @abstractmethod
     def roots(self):  # return all graph roots
         pass
@@ -13,6 +15,8 @@ class Rootedgraph(ABC):
 
 
 class DictionaryGraph(Rootedgraph):
+    """Implementation of RootedGraph - basic graph using dictionary"""
+
     def __init__(self, graph=None, roots=None):
         self.graph = graph if graph is not None else {}
         self._roots = roots if roots is not None else []
@@ -25,6 +29,11 @@ class DictionaryGraph(Rootedgraph):
 
 
 class HanoiGraph(Rootedgraph):
+    """Implementation of RootedGraph - Hanoi towers
+    The tower structure is defined by a tuple. Each tower is defined by a tuple of int values representing disks (the smaller the integer, the smaller the disk).
+    The left most disk in the tower tuple is the bottom disk, the right most is the top disk.
+    """
+
     def __init__(self, n_disks: int):
         self.n_disks = n_disks
         self._roots = [(tuple(range(n_disks, 0, -1)), (), ())]  # All disks on tower A
@@ -138,6 +147,16 @@ def on_entry_create_parents(vertex, opaque: tuple[dict, Rootedgraph, callable]):
 
 
 def BFS(graph: Rootedgraph, on_entry: callable, opaque=None):
+    """Implementation of the breadth-first search algorithm on a rooted graph.
+
+    Args:
+        graph (Rootedgraph): The rooted graph to explore
+        on_entry (callable): Function called on each newly discovered vertex. It takes the vertex and the opaque data as arguments and returns a tuple (terminate, new_opaque).
+        opaque (any, optional): Opaque data passed to the on_entry function. Defaults to None.
+
+    Returns:
+        (marked, opaque)(set, any): A tuple where 'marked' is the set of all visited vertices and 'opaque' is the final opaque data returned by the on_entry function.
+    """
     marked = set()
     queue = deque()  # double ended queue : can pop from both ends
     for root in graph.roots():
