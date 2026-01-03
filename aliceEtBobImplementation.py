@@ -28,3 +28,37 @@ class AB1(Rootedgraph):
 
     def neighbors(self, vertex):
         return self.transitions.get(vertex, [])
+
+
+class AB2(Rootedgraph):
+    """
+    Automate AB2 avec drapeaux pour Alice & Bob.
+    Un état est (etat_alice, etat_bob, flagAlice, flagBob).
+    """
+
+    def __init__(self):
+        # Etats possibles (à adapter à votre figure) :
+        # W = waiting, CS = section critique, A1/A2/A3 pour les étapes d'Alice,
+        # B1/B2/B3/... pour celles de Bob.
+        self.initial_state = ("W", "W", "DOWN", "DOWN")
+
+        # Transitions à compléter selon la figure d'AB2.
+        # Exemple de base illustratif :
+        self.transitions = {
+            # Alice lève son drapeau
+            ("W", "W", "DOWN", "DOWN"): [
+                ("A1", "W", "UP", "DOWN"),   # {a1}/flagAlice = UP
+                ("W", "B1", "DOWN", "UP"),  # {b1}/flagBob = UP
+            ],
+
+            # Ici il faudra continuer en suivant vos figures :
+            # - passage par A2/A3 avec mise à jour de flagAlice
+            # - passage par B2/B3 avec conditions sur flagAlice/flagBob
+            # - états CS pour chacun
+        }
+
+    def roots(self):
+        return [self.initial_state]
+
+    def neighbors(self, vertex):
+        return self.transitions.get(vertex, [])
