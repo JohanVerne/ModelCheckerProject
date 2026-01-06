@@ -1,6 +1,16 @@
 from BFS_definition import BFS
 from aliceEtBobImplementation import AB1
 
+def has_deadlock_candidates(marked, graph):
+    """Cherche états accessibles sans successeurs (potentiels deadlocks)."""
+    deadlocks = []
+    for state in marked:
+        successors = graph.neighbors(state)
+        if len(successors) == 0:
+            deadlocks.append(state)
+    return deadlocks
+
+
 if __name__ == "__main__":
 
     print("====== AB1 =======")
@@ -15,16 +25,10 @@ if __name__ == "__main__":
     assert ('CS', 'CS') not in marked
     print("✅ Exclusion mutuelle AB1 OK")
 
-    # Test deadlock : ici, on regarde s'il existe au moins un état
-    # où personne n'est en CS mais où au moins un mouvement reste possible.
-    # Pour un vrai deadlock, on voudrait un état sans successeur ET où quelqu'un veut la CS.
-    has_deadlock_candidate = False
-    for state in marked:
-        neighbors = ab1.neighbors(state)
-        if len(neighbors) == 0:
-            has_deadlock_candidate = True
-            print("⚠️ État candidat deadlock AB1:", state)
-
-    if not has_deadlock_candidate:
-        print("✅ Aucun deadlock évident dans AB1")
+    # Test deadlock
+    deadlock_states = has_deadlock_candidates(marked, ab1)
+    if deadlock_states:
+        print("⚠️ États potentiels deadlock AB1 :", deadlock_states)
+    else:
+        print("✅ Pas de deadlock détecté dans AB1")
 

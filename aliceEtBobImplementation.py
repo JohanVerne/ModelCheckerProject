@@ -116,3 +116,5 @@ class AB3(Rootedgraph):
 
     def neighbors(self, vertex):
         return self.transitions.get(vertex, [])
+    
+    
