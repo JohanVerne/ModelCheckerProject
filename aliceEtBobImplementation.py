@@ -50,11 +50,65 @@ class AB2(Rootedgraph):
                 ("A1", "W", "UP", "DOWN"),   # {a1}/flagAlice = UP
                 ("W", "B1", "DOWN", "UP"),  # {b1}/flagBob = UP
             ],
+        
+            # ALICE monte drapeau → vérifie Bob → CS
+            ("A1", "W", "UP", "DOWN"): [
+                ("CS", "W", "UP", "DOWN"),    # {a2}[flagBob == DOWN] → CS
+            ],
+            
+            # BOB monte drapeau → vérifie Alice → CS  
+            ("W", "B1", "DOWN", "UP"): [
+                ("W", "CS", "DOWN", "UP"),    # {b2}[flagAlice == DOWN] → CS
+            ],
+            
+            # SORTIE CS → drapeau down
+            ("CS", "W", "UP", "DOWN"): [
+                ("W", "W", "DOWN", "DOWN"),   # {a3}/flagAlice = DOWN
+            ],
+            ("W", "CS", "DOWN", "UP"): [
+                ("W", "W", "DOWN", "DOWN"),   # {b3}/flagBob = DOWN
+            ],
+        }
 
-            # Ici il faudra continuer en suivant vos figures :
-            # - passage par A2/A3 avec mise à jour de flagAlice
-            # - passage par B2/B3 avec conditions sur flagAlice/flagBob
-            # - états CS pour chacun
+
+    def roots(self):
+        return [self.initial_state]
+
+    def neighbors(self, vertex):
+        return self.transitions.get(vertex, [])
+
+
+class AB3(Rootedgraph):
+    """
+    Automate AB3 : stratégie avec résolution de conflit via drapeaux.
+    """
+    
+    def __init__(self):
+        self.initial_state = ("W", "W", "DOWN", "DOWN")
+        
+        self.transitions = {
+            # Identique à AB2 au début
+            ("W", "W", "DOWN", "DOWN"): [
+                ("A1", "W", "UP", "DOWN"),    # {a1}/flagAlice = UP
+                ("W", "B1", "DOWN", "UP"),    # {b1}/flagBob = UP
+            ],
+            ("A1", "W", "UP", "DOWN"): [
+                ("CS", "W", "UP", "DOWN"),    # {a2}[flagBob == DOWN] → CS
+            ],
+            ("W", "B1", "DOWN", "UP"): [
+                ("W", "CS", "DOWN", "UP"),    # {b2}[flagAlice == DOWN] → CS
+                
+                # NOUVEAU pour AB3 : Bob voit flagAlice==UP → baisse son drapeau
+                ("W", "W", "UP", "DOWN"),     # {b4}[flagAlice == UP]/flagBob = DOWN
+            ],
+            
+            # Sorties CS
+            ("CS", "W", "UP", "DOWN"): [
+                ("W", "W", "DOWN", "DOWN"),   # {a3}/flagAlice = DOWN
+            ],
+            ("W", "CS", "DOWN", "UP"): [
+                ("W", "W", "DOWN", "DOWN"),   # {b3}/flagBob = DOWN
+            ],
         }
 
     def roots(self):
