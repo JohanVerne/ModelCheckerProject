@@ -1,4 +1,4 @@
-# Model Checker Project
+# 1ère partie - Model Checker Project
 
 Implémentation complète d'un vérificateur de modèles basé sur BFS générique pour graphes orientés avec racines.
 
@@ -82,6 +82,10 @@ Commits réguliers sur 3 semaines avec :
 - Fonctionnalités testables à chaque étape
 - Tests unitaires dédiés par automate
 - Documentation évolutive
+
+# 2ème partie - Language Semantics to Rooted Graph
+
+# 3 ème partie - Soup
 
 ## Ressources
 
