@@ -1,7 +1,7 @@
-from BFS_definition import Rootedgraph
+from BFS_definition import RootedGraph
 
 
-class AB1(Rootedgraph):
+class AB1(RootedGraph):
     """Implementation of the basic Alice and Bob problem graph
 
     Root : Alice and Bob are inside their houses
@@ -29,7 +29,7 @@ class AB1(Rootedgraph):
         return self.transitions.get(vertex, [])
 
 
-class AB2(Rootedgraph):
+class AB2(RootedGraph):
     """
     Automate AB2 avec drapeaux pour Alice & Bob.
     Un état est (etat_alice, etat_bob, flagAlice, flagBob).
@@ -80,7 +80,7 @@ class AB2(Rootedgraph):
         return self.transitions.get(vertex, [])
 
 
-class AB3(Rootedgraph):
+class AB3(RootedGraph):
     """
     Automate AB3 : stratégie avec résolution de conflit via drapeaux.
     """

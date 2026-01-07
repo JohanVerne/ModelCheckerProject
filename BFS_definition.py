@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import deque
 
 
-class Rootedgraph(ABC):
+class RootedGraph(ABC):
     """Abstract class for Rooted graphs"""
 
     @abstractmethod
@@ -14,7 +14,7 @@ class Rootedgraph(ABC):
         pass
 
 
-class DictionaryGraph(Rootedgraph):
+class DictionaryGraph(RootedGraph):
     """Implementation of RootedGraph - basic graph using dictionary"""
 
     def __init__(self, graph=None, roots=None):
@@ -28,7 +28,7 @@ class DictionaryGraph(Rootedgraph):
         return self.graph.get(vertex, [])
 
 
-class HanoiGraph(Rootedgraph):
+class HanoiGraph(RootedGraph):
     """Implementation of RootedGraph - Hanoi towers
     The tower structure is defined by a tuple. Each tower is defined by a tuple of int values representing disks (the smaller the integer, the smaller the disk).
     The left most disk in the tower tuple is the bottom disk, the right most is the top disk.
@@ -106,7 +106,7 @@ def path_to_objective(parents: dict, startNode):
     return path
 
 
-def on_entry_create_parents(vertex, opaque: tuple[dict, Rootedgraph, callable]):
+def on_entry_create_parents(vertex, opaque: tuple[dict, RootedGraph, callable]):
     """On entry function that builds parent dictionary and stops BFS when objective is reached --> returns path from root to objective.
 
     Args:
@@ -146,7 +146,7 @@ def on_entry_create_parents(vertex, opaque: tuple[dict, Rootedgraph, callable]):
     return (False, (parentsDict, graph, objective))
 
 
-def BFS(graph: Rootedgraph, on_entry: callable, opaque=None):
+def BFS(graph: RootedGraph, on_entry: callable, opaque=None):
     """Implementation of the breadth-first search algorithm on a rooted graph.
 
     Args:
