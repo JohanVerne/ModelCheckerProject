@@ -11,16 +11,15 @@ class AB1(Rootedgraph):
     """
 
     def __init__(self):
-        # À adapter selon votre figure, ceci est un exemple raisonnable :
-        # W = waiting (maison), CS = section critique
-        self.initial_state = ("W", "W")
+        # I = Initial, CS = section critique
+        self.initial_state = ("I", "I")
 
         # transitions[state] = [liste des états successeurs]
         self.transitions = {
-            ("W", "W"): [("CS", "W"), ("W", "CS")],
-            ("CS", "W"): [("W", "W")],
-            ("W", "CS"): [("W", "W")],
-            # ajouter d'autres états si votre AB1 en prévoit plus
+            ("I", "I"): [("CS", "I"), ("I", "CS")],
+            ("CS", "I"): [("I", "I"), ("CS", "CS")],
+            ("I", "CS"): [("I", "I"), ("CS", "CS")],
+            ("CS", "CS"): [("I", "CS"), ("CS", "I")],
         }
 
     def roots(self):
@@ -37,39 +36,42 @@ class AB2(Rootedgraph):
     """
 
     def __init__(self):
-        # Etats possibles (à adapter à votre figure) :
-        # W = waiting, CS = section critique, A1/A2/A3 pour les étapes d'Alice,
-        # B1/B2/B3/... pour celles de Bob.
-        self.initial_state = ("W", "W", "DOWN", "DOWN")
+        # I: Initial, W = waiting, CS = section critique,
+        # flagAlice/flagBob = UP/DOWN
+        self.initial_state = ("I", "I", "DOWN", "DOWN")
 
-        # Transitions à compléter selon la figure d'AB2.
-        # Exemple de base illustratif :
         self.transitions = {
-            # Alice lève son drapeau
-            ("W", "W", "DOWN", "DOWN"): [
-                ("A1", "W", "UP", "DOWN"),   # {a1}/flagAlice = UP
-                ("W", "B1", "DOWN", "UP"),  # {b1}/flagBob = UP
+            # Alice lève son drapeau ou Bob lève son drapeau et avance en W
+            ("I", "I", "DOWN", "DOWN"): [
+                ("I", "W", "DOWN", "UP"),
+                ("W", "I", "UP", "DOWN"),
             ],
-        
-            # ALICE monte drapeau → vérifie Bob → CS
-            ("A1", "W", "UP", "DOWN"): [
-                ("CS", "W", "UP", "DOWN"),    # {a2}[flagBob == DOWN] → CS
+            # Bob avance en W quand Alice est en W
+            ("W", "I", "UP", "DOWN"): [
+                ("W", "W", "UP", "UP"),
+                # Alice avance en CS si drapeau Bob down
+                ("CS", "I", "UP", "DOWN"),
             ],
-            
-            # BOB monte drapeau → vérifie Alice → CS  
-            ("W", "B1", "DOWN", "UP"): [
-                ("W", "CS", "DOWN", "UP"),    # {b2}[flagAlice == DOWN] → CS
+            # Alcie avance en W quand Bob est en W
+            ("I", "W", "DOWN", "UP"): [
+                ("W", "W", "UP", "UP"),
+                # Bob avance en CS si drapeau Alice down
+                ("I", "CS", "DOWN", "UP"),
             ],
-            
             # SORTIE CS → drapeau down
-            ("CS", "W", "UP", "DOWN"): [
-                ("W", "W", "DOWN", "DOWN"),   # {a3}/flagAlice = DOWN
+            ("CS", "I", "UP", "DOWN"): [
+                ("I", "I", "DOWN", "DOWN"),
             ],
-            ("W", "CS", "DOWN", "UP"): [
-                ("W", "W", "DOWN", "DOWN"),   # {b3}/flagBob = DOWN
+            ("I", "CS", "DOWN", "UP"): [
+                ("I", "I", "DOWN", "DOWN"),
+            ],
+            ("CS", "W", "UP", "UP"): [
+                ("I", "W", "DOWN", "UP"),
+            ],
+            ("W", "CS", "UP", "UP"): [
+                ("W", "I", "UP", "DOWN"),
             ],
         }
-
 
     def roots(self):
         return [self.initial_state]
@@ -82,32 +84,44 @@ class AB3(Rootedgraph):
     """
     Automate AB3 : stratégie avec résolution de conflit via drapeaux.
     """
-    
+
     def __init__(self):
-        self.initial_state = ("W", "W", "DOWN", "DOWN")
-        
-        self.transitions = {
-            # Identique à AB2 au début
-            ("W", "W", "DOWN", "DOWN"): [
-                ("A1", "W", "UP", "DOWN"),    # {a1}/flagAlice = UP
-                ("W", "B1", "DOWN", "UP"),    # {b1}/flagBob = UP
+        self.initial_state = ("I", "I", "DOWN", "DOWN")
+
+        self.transitions = self.transitions = {
+            # Alice lève son drapeau ou Bob lève son drapeau et avance en W
+            ("I", "I", "DOWN", "DOWN"): [
+                ("I", "W", "DOWN", "UP"),
+                ("W", "I", "UP", "DOWN"),
             ],
-            ("A1", "W", "UP", "DOWN"): [
-                ("CS", "W", "UP", "DOWN"),    # {a2}[flagBob == DOWN] → CS
+            # Bob avance en W quand Alice est en W
+            ("W", "I", "UP", "DOWN"): [
+                ("W", "W", "UP", "UP"),
+                # Alice avance en CS si drapeau Bob down
+                ("CS", "I", "UP", "DOWN"),
             ],
-            ("W", "B1", "DOWN", "UP"): [
-                ("W", "CS", "DOWN", "UP"),    # {b2}[flagAlice == DOWN] → CS
-                
-                # NOUVEAU pour AB3 : Bob voit flagAlice==UP → baisse son drapeau
-                ("W", "W", "UP", "DOWN"),     # {b4}[flagAlice == UP]/flagBob = DOWN
+            # Alcie avance en W quand Bob est en W
+            ("I", "W", "DOWN", "UP"): [
+                ("W", "W", "UP", "UP"),
+                # Bob avance en CS si drapeau Alice down
+                ("I", "CS", "DOWN", "UP"),
             ],
-            
-            # Sorties CS
-            ("CS", "W", "UP", "DOWN"): [
-                ("W", "W", "DOWN", "DOWN"),   # {a3}/flagAlice = DOWN
+            # SORTIE CS → drapeau down
+            ("CS", "I", "UP", "DOWN"): [
+                ("I", "I", "DOWN", "DOWN"),
             ],
-            ("W", "CS", "DOWN", "UP"): [
-                ("W", "W", "DOWN", "DOWN"),   # {b3}/flagBob = DOWN
+            ("I", "CS", "DOWN", "UP"): [
+                ("I", "I", "DOWN", "DOWN"),
+            ],
+            ("CS", "W", "UP", "UP"): [
+                ("I", "W", "DOWN", "UP"),
+            ],
+            ("W", "CS", "UP", "UP"): [
+                ("W", "I", "UP", "DOWN"),
+            ],
+            # On ajoute la transition de sortie du deadlock
+            ("W", "W", "UP", "UP"): [
+                ("I", "W", "DOWN", "UP"),
             ],
         }
 
@@ -116,5 +130,3 @@ class AB3(Rootedgraph):
 
     def neighbors(self, vertex):
         return self.transitions.get(vertex, [])
-    
-    

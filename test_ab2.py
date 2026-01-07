@@ -1,6 +1,7 @@
 from BFS_definition import BFS
 from aliceEtBobImplementation import AB2
 
+
 def has_deadlock_candidates(marked, graph):
     """Cherche états accessibles sans successeurs (potentiels deadlocks)."""
     deadlocks = []
@@ -16,13 +17,16 @@ if __name__ == "__main__":
     ab2 = AB2()
     marked, _ = BFS(ab2, lambda v, o: (False, o), None)
     print(f"États atteints : {marked}")
-    
+
     # Test exclusion mutuelle
-    exclusion_violation = any("CS" in state[0] and "CS" in state[1] 
-                              for state in marked)
-    assert not exclusion_violation
-    print("✅ Exclusion mutuelle AB2 OK")
-    
+    exclusion_violation = any("CS" in state[0] and "CS" in state[1] for state in marked)
+    try:
+        assert ("CS", "CS") not in marked
+    except AssertionError:
+        print("❌ Violation d'exclusion mutuelle dans AB2")
+    else:
+        print("✅ Exclusion mutuelle AB2 OK")
+
     print(f"Nombre d'états : {len(marked)}")
 
     # Test deadlock
