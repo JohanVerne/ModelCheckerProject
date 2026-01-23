@@ -180,6 +180,16 @@ alicebob/
 
 **AB3 assure l'exclusion mutuelle SANS deadlock** ! 🎯
 
+
+
+# 5ème partie - Property Operator Interface
+
+**Langage Propriété contrôle LanguageSemantics** via 3 méthodes :
+- initial() : état initial opérateur
+- actions(λ,état) : filtre actions selon prédicat
+- execute(pas,cfg_suivante) : met à jour état opérateur
+
+
 ## Ressources
 
 Professor's link to his course "From Zero to Model-Checking" : [https://teodorov.github.io/z2mc/](https://teodorov.github.io/z2mc/)
