@@ -193,8 +193,42 @@ Pipeline générique : SoupProgram → SoupSemantics → Operator × PropertySem
 
 # Bilan
 
+| Aspect      | NFA                | Büchi                     |
+| ----------- | ------------------ | ------------------------- |
+| Chemins     | FINIS              | INFINIS (ω-mots)          |
+| Acceptation | État final atteint | Cycle avec état acceptant |
+| Propriétés  | Safety uniquement  | Safety + Liveness         |
+| P1, P2      | ✅ Supporté         | ✅ Supporté                |
+| P3, P4, P5  | ❌ Impossible       | ✅ Nécessaire              |
 
 
+
+
+| Aspect                    | Patron 1                                                                                        | Patron 2                                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Intuition                 | Automate qui boucle sur true et passe dans un état d’erreur dès que la condition apparaît       | Automate qui boucle explicitement sur !cond et passe dans un état d’erreur dès que cond apparaît                        |
+| Forme logique             | « On surveille le système, et si la situation interdite arrive, on tombe dans un état spécial » | « Tant que la situation interdite n’arrive pas (!cond), on reste dans l’état initial, sinon on va dans l’état spécial » |
+| Transitions               | Une transition sortante pour cond (vers l’état d’erreur), le reste est implicite                | Deux cas : !cond (boucle) et cond (vers l’état d’erreur)                                                                |
+| États                     | 2 états : un état initial/acceptant et un état d’erreur (piège)                                 | 2 états : un état initial/acceptant et un état d’erreur (piège)                                                         |
+| Expressivité              | Identique à Patron 2 pour les propriétés de sûreté (safety) simples                             | Identique à Patron 1 pour les propriétés de sûreté (safety) simples                                                     |
+| Impact pratique sur P1/P2 | Même ensemble de traces acceptées, mêmes résultats de model checking                            | Même ensemble de traces acceptées, mêmes résultats de model checking                                                    |
+| Quand préférer            | Quand on veut un schéma très simple « condition → erreur »                                      | Quand on veut rendre explicite le cas !cond pour raisonner sur les gardes                                               |
 ## Ressources
 
 Professor's link to his course "From Zero to Model-Checking" : [https://teodorov.github.io/z2mc/](https://teodorov.github.io/z2mc/)
+
+
+# Next steps
+
+traces et contre exemples : Attention les contre example ont la forme (prefix-trace, cyclic-suffix-trace)
+iSoup et SoupSemantics (soup = syntacs)
+
+Step Synchronous Composition (opérateur): 2 entrées (droite isoup et gauche soupsem)
+
+predicat = condition sur une arrete d'un automate, si le sytème trouve un deadlock,l'espac 'état créee une boucle à l'automate en tagant l'arrete avec deadlock
+
+la dif est le prédicat qu'on ajoute au BFS (si je treouve un état d'acceptation, refait bfs desus pour trouver une boucle), et l'interpretationn de contre exemple doivent rester la même.
+
+respecter les briques sur le site du prof
+
+en gros le iSoup (le concept c'est que si on le remplace par la syntaxe de java, ça marchera toujours)
