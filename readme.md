@@ -191,6 +191,10 @@ alicebob/
 
 Pipeline générique : SoupProgram → SoupSemantics → Operator × PropertySemantics → LS2RG → BFS(accepting)
 
+# Bilan
+
+
+
 ## Ressources
 
 Professor's link to his course "From Zero to Model-Checking" : [https://teodorov.github.io/z2mc/](https://teodorov.github.io/z2mc/)
