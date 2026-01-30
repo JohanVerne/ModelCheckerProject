@@ -189,6 +189,7 @@ alicebob/
 - actions(λ,état) : filtre actions selon prédicat
 - execute(pas,cfg_suivante) : met à jour état opérateur
 
+Pipeline générique : SoupProgram → SoupSemantics → Operator × PropertySemantics → LS2RG → BFS(accepting)
 
 ## Ressources
 
