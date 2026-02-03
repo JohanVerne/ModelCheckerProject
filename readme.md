@@ -96,18 +96,19 @@ LanguageSemantics          LS2RG          RootedGraph
 
 ## Implémentation
 
-| Au tableau | Fichier | Implémentation |
-|------------|---------|----------------|
-| `LanguageSemantics` | `languagesemantics.py` | Interface abstraite |
-| `initials()` | `hanoilanguagesemantics.py` | État initial Hanoï |
-| `actions(state)` | `hanoilanguagesemantics.py` | Déplacements valides |
-| `execute(state,a)` | `hanoilanguagesemantics.py` | Nouvel état après action |
-| `LS2RG` | `ls2rg.py` | Adaptateur vers RootedGraph |
-| `roots()` | `ls2rg.py` | `self._ls.initials()` |
-| `neighbors()` | `ls2rg.py` | `actions()` + `execute()` |
-| `BFS(on_entry)` | `hanoi_solver_ls.py` | `breadth_first_search()` |
+| Au tableau          | Fichier                     | Implémentation              |
+| ------------------- | --------------------------- | --------------------------- |
+| `LanguageSemantics` | `languagesemantics.py`      | Interface abstraite         |
+| `initials()`        | `hanoilanguagesemantics.py` | État initial Hanoï          |
+| `actions(state)`    | `hanoilanguagesemantics.py` | Déplacements valides        |
+| `execute(state,a)`  | `hanoilanguagesemantics.py` | Nouvel état après action    |
+| `LS2RG`             | `ls2rg.py`                  | Adaptateur vers RootedGraph |
+| `roots()`           | `ls2rg.py`                  | `self._ls.initials()`       |
+| `neighbors()`       | `ls2rg.py`                  | `actions()` + `execute()`   |
+| `BFS(on_entry)`     | `hanoi_solver_ls.py`        | `breadth_first_search()`    |
 
 ## Flux complet
+
 ```
 HanoiLanguageSemantics → LS2RG → RootedGraph → BFS → Solution
 ```
@@ -142,13 +143,11 @@ soup_validation.py
 
 ## Complexité
 
-| Systèmes | États max | Explorés BFS |
-|----------|-----------|--------------|
-| 1 Hanoï(2) | 3 | 3 |
-| **2 Hanoï(2)** | **9** | **7** |
-| **3 Hanoï(2)** | **27** | **27** |
-
-
+| Systèmes       | États max | Explorés BFS |
+| -------------- | --------- | ------------ |
+| 1 Hanoï(2)     | 3         | 3            |
+| **2 Hanoï(2)** | **9**     | **7**        |
+| **3 Hanoï(2)** | **27**    | **27**       |
 
 # 4ème partie - Vérification Alice & Bob
 
@@ -160,40 +159,125 @@ soup_validation.py
 alicebob/
 ├── alicebob_semantics.py  # AliceBobState + AB1/AB2/AB3 implémentations
 ├── test_ab1_semantics.py
-├── test_ab2_semantics.py  
+├── test_ab2_semantics.py
 └── test_ab3_semantics.py
 ```
 
 ## Résultats
 
 | Protocole | Exclusion | Deadlock | États |
-|-----------|-----------|----------|-------|
-| **AB1** | 0 ✅ | **1 ❌** | 12 |
-| **AB2** | 0 ✅ | **1 ❌** | 8 |
-| **AB3** | 0 ✅ | **0 ✅** | 10 |
+| --------- | --------- | -------- | ----- |
+| **AB1**   | 0 ✅      | **1 ❌** | 12    |
+| **AB2**   | 0 ✅      | **1 ❌** | 8     |
+| **AB3**   | 0 ✅      | **0 ✅** | 10    |
 
 ## Analyse
 
 - **AB1** : Deadlock `(a2,b2)` classique
-- **AB2** : Deadlock flags `UP/UP` 
+- **AB2** : Deadlock flags `UP/UP`
 - **AB3** : **Correct** grâce à `b4` (Bob cède)
 
 **AB3 assure l'exclusion mutuelle SANS deadlock** ! 🎯
 
+# 5ème partie - Produit synchrone & Property Verification
 
+**Produit synchrone** : Composition d'un programme avec un automate de propriété pour vérification.
 
-# 5ème partie - Property Operator Interface
+```
+SoupProgram × SoupSemantics → SynchronousProduct → LS2RG → BFS → Accepting States
+```
 
-**Langage Propriété contrôle LanguageSemantics** via 3 méthodes :
-- initial() : état initial opérateur
-- actions(λ,état) : filtre actions selon prédicat
-- execute(pas,cfg_suivante) : met à jour état opérateur
+## Architecture
 
-Pipeline générique : SoupProgram → SoupSemantics → Operator × PropertySemantics → LS2RG → BFS(accepting)
+```
+synchronous_product.py
+├── ProductConfiguration((program_state, property_state))
+├── PropertySemantics (interface)
+│   ├── initial() : état initial de la propriété
+│   ├── accepts(state) : états acceptants
+│   ├── actions(prop_state, prog_state) : filtrage d'actions
+│   └── execute(prop_state, action, next_prog_state) : transition
+├── SynchronousProduct(LanguageSemantics)
+│   ├── initials() : produit cartésien des états initiaux
+│   ├── actions() : intersection des actions (filtrées par propriété)
+│   └── execute() : exécution parallèle programme + propriété
+└── AcceptingStateChecker : callback BFS pour états acceptants
+```
+
+## Pipeline complet
+
+```
+AB1Semantics ──→ AB1WithUniqueActions ──┐
+                                        ├──→ SynchronousProduct ──→ LS2RG ──→ BFS ──→ Accepting/Error states
+MutualExclusionProperty ────────────────┘
+```
+
+## Propriétés implémentées
+
+### Safety Properties (Büchi automata)
+
+| Propriété              | Classe                    | États     | Acceptants | Description                    |
+| ---------------------- | ------------------------- | --------- | ---------- | ------------------------------ |
+| **Exclusion mutuelle** | `MutualExclusionProperty` | OK, ERROR | OK         | `¬(alice_CS ∧ bob_CS)`         |
+| **Absence deadlock**   | `NoDeadlockProperty`      | OK, ERROR | OK         | Toujours une action disponible |
+
+### Liveness Properties (Büchi automata)
+
+| Propriété   | Classe                 | États              | Acceptants | Description            |
+| ----------- | ---------------------- | ------------------ | ---------- | ---------------------- |
+| **Progrès** | `EventuallyCSProperty` | WAITING, SATISFIED | SATISFIED  | `◇(alice_CS ∨ bob_CS)` |
+
+## Fichiers
+
+```
+synchronous_product.py
+├── ProductConfiguration           # États du produit
+├── PropertySemantics              # Interface propriété
+├── SynchronousProduct             # Composition programme × propriété
+├── MutualExclusionProperty        # Propriété sûreté
+├── EventuallyCSProperty           # Propriété vivacité
+├── NoDeadlockProperty             # Détection deadlock
+└── AB1WithUniqueActions           # Wrapper pour AB1
+
+full_pipeline.py
+├── test_product_structure()       # Test configuration produit
+├── test_ab1_with_mutex_property() # AB1 viole exclusion mutuelle ❌
+├── test_ab2_with_mutex_property() # AB2 respecte exclusion ✅
+└── test_ab3_with_mutex_property() # AB3 respecte exclusion ✅
+```
+
+## Résultats de vérification
+
+| Protocole | Wrapper              | Propriété          | États explorés | Violations | Résultat     |
+| --------- | -------------------- | ------------------ | -------------- | ---------- | ------------ |
+| **AB1**   | AB1WithUniqueActions | Exclusion mutuelle | 16+            | **> 0**    | ❌ VIOLATION |
+| **AB2**   | AB2Semantics         | Exclusion mutuelle | 8              | **0**      | ✅ CORRECT   |
+| **AB3**   | AB3Semantics         | Exclusion mutuelle | 10             | **0**      | ✅ CORRECT   |
+
+## Commandes de test
+
+```bash
+python full_pipeline.py
+```
+
+## Extension vers Büchi automata complets
+
+Les propriétés implémentées sont des automates de Büchi simplifiés. Pour un model checker complet, il faudrait :
+
+- Support des cycles acceptants (liveness complète)
+- Algorithmes de recherche de cycles (Nested DFS, Tarjan)
+- Opérateurs temporels LTL (Always, Until, Release)
+- Négation de propriétés (complémentation Büchi)
+
+_Reste à faire : Tester tous les Alice et Bob avec différents patrons / toutes les propriétés ..._
 
 # Bilan
 
-
+✅ **Produit synchrone opérationnel**  
+✅ **Propriétés safety vérifiables**  
+✅ **Détection violations AB1**  
+✅ **Validation correctness AB2/AB3**  
+✅ **Pipeline complet fonctionnel**
 
 ## Ressources
 
