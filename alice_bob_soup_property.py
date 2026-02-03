@@ -1,8 +1,3 @@
-"""
-Alice-Bob Soup + Property Operator 
-✅ EXÉCUTABLE machine prof
-"""
-
 from languagesemantics import LanguageSemantics
 from soupsemantics import SoupSemantics, SoupConfiguration
 from ls2rg import LS2RG
